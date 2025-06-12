@@ -1,0 +1,28 @@
+{
+  "puppet-module": {
+    "name": "puppet-module",
+    "description": "Scaffolds Puppet modules and classes following best practices.",
+    "repo": "https://github.com/forge-ai/plugin-puppet-module",
+    "version": "1.2.0",
+    "installed": false,
+    "install_path": "/Users/corey/.forge/plugins/puppet-module",
+    "files": [
+      "metadata.json",
+      "manifests/"
+    ]
+  },
+  "terraform-module": {
+    "name": "terraform-module",
+    "description": "Templates for HashiCorp Terraform modules using cookiecutter.",
+    "repo": "https://github.com/forge-ai/plugin-terraform-module",
+    "version": "0.9.3",
+    "installed": false
+  },
+  "python-package": {
+    "name": "python-package",
+    "description": "Bootstraps Python package projects with testing and linting setup.",
+    "repo": "https://github.com/forge-ai/plugin-python-package",
+    "version": "0.4.0",
+    "installed": false
+  }
+}
