@@ -27,7 +27,7 @@ This is currently an idea with no working implementation yet.  I am currently wo
 
 ```mermaid
 graph TD
-  CLI -->|init| PluginManifest
+  CLI -->|init| ProjectManifest
   CLI -->|generate| TemplateProcessor
   TemplateProcessor -->|detect| Plugin
   TemplateProcessor --> RuntimeChecker
