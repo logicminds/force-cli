@@ -1,16 +1,19 @@
 // src/main.rs
 mod plugin;
 mod templates;
+mod runtime_checker;
+mod renderer;
+mod template_processor;
 mod commands {
     pub mod init;
     pub mod plugin_install;
     pub mod generate;
 }
-use std::path::PathBuf;
+
 use commands::{
     init::run_forge_init,
     plugin_install::{plugin_install, plugin_list, plugin_remove},
-    generate::generate_file,
+    generate::{GenerateSubcommand, handle_generate},
 };
 use clap::{Parser, Subcommand};
 use anyhow::Result;
@@ -35,25 +38,17 @@ enum Commands {
         #[arg(short, long)]
         force: bool,
     },
+    #[command(alias = "gen")]
     Generate {
-      #[command(subcommand)]
-        action: GenerateCommand,
+        #[command(subcommand)]
+        action: GenerateSubcommand,
     },
     Plugin {
         #[command(subcommand)]
         action: PluginCommand,
     },
 }
-#[derive(Subcommand)]
-#[command(alias = "gen")]
-enum GenerateCommand {
-    File {
-        plugin: String,
-        template: String,
-        #[arg(short, long, default_value = ".")]
-        target_dir: PathBuf,
-    }
-}
+
 #[derive(Subcommand)]
 enum PluginCommand {
     Install {
@@ -73,11 +68,8 @@ fn main() -> Result<()> {
         Commands::Init { plugin, template, force } => {
             run_forge_init(plugin, template, force)?;
         },
-        Commands::Generate { action } => match action {
-
-          GenerateCommand::File { plugin, template, target_dir } => {
-              generate_file(&plugin, &template, &target_dir)?;
-          },
+        Commands::Generate { action } => {
+            handle_generate(action)?;
         },
         Commands::Plugin { action } => match action {
             PluginCommand::Install { plugin } => {

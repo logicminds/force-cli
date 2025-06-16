@@ -1,23 +1,23 @@
 // src/template_processor.rs
 use std::fs;
-use std::path::{Path, PathBuf};
-use anyhow::{Result, Context};
+use std::path::{PathBuf};
+use anyhow::{Result};
 use walkdir::WalkDir;
 use serde_json::Value;
 
-use crate::plugin::Plugin;
+use crate::plugin::PluginMetadata;
 use crate::runtime_checker::check_required_runtimes;
 use crate::renderer::render_template_file;
 
 /// Process and render templates from a directory
 pub fn process_templates(
-    plugin: &Plugin,
+    plugin: &PluginMetadata,
     templates_dir: Option<PathBuf>,
     output_dir: PathBuf,
 ) -> Result<()> {
     let template_root = match templates_dir {
         Some(dir) => dir,
-        None => plugin.templates.clone(),
+        None => plugin.templates.clone()
     };
 
     let mut template_paths = Vec::new();

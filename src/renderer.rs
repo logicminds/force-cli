@@ -1,5 +1,4 @@
 // src/renderer.rs
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -7,15 +6,14 @@ use anyhow::{Result, Context};
 use tempfile::NamedTempFile;
 use std::io::Write;
 use serde_json::Value;
-
-use crate::plugin::Plugin;
+use crate::plugin::PluginMetadata;
 
 /// Render a template file using native or external VM-based engines.
 pub fn render_template_file(
     input_path: &Path,
     output_path: &Path,
     variables: &Value,
-    plugin: Option<&Plugin>,
+    plugin: Option<&PluginMetadata>,
 ) -> Result<()> {
     let ext = input_path.extension()
         .and_then(|e| e.to_str())
@@ -29,11 +27,14 @@ pub fn render_template_file(
         "ejs" => render_with_vm("node", script_dir.join("render_ejs.js"), input_path, output_path, variables),
         "hbs" => render_with_vm("node", script_dir.join("render_hbs.js"), input_path, output_path, variables),
         _ => {
-            if let Some(plugin) = plugin {
-                if let Some((runtime, command)) = plugin.custom_renderer(ext) {
-                    return render_with_plugin_command(runtime, command, input_path, output_path, variables);
-                }
-            }
+              if let Some(plugin) = plugin {
+                  if let Some(runtime_command) = &plugin.custom_renderer_command {
+                      let mut parts = runtime_command.split_whitespace();
+                      let runtime = parts.next().context("Missing runtime in custom_renderer_command")?;
+                      let command_path = parts.next().context("Missing command path in custom_renderer_command")?;
+                      return render_with_plugin_command(runtime, command_path.to_string(), input_path, output_path, variables);
+                  }
+              }
             render_fallback(input_path, output_path, variables)
         }
     }
@@ -73,7 +74,7 @@ fn render_with_vm(
     temp_file.flush()?;
 
     let status = Command::new(runtime)
-        .arg(script_path)
+        .arg(&script_path)
         .arg(input_path)
         .arg(output_path)
         .arg(temp_file.path())

@@ -22,9 +22,10 @@ pub fn plugin_install(plugin_name: &str, index_path: PathBuf) -> Result<()> {
         name: plugin_name.to_string(),
         version: "0.1.0".to_string(),
         description: Some("Sample installed plugin".to_string()),
-        templates: HashMap::new(),
+        templates: String::new(),
         detect: None,
         actions: None,
+        custom_renderer_command: None
     };
 
     let json = serde_json::to_string_pretty(&plugin_metadata)?;

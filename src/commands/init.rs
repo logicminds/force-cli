@@ -3,9 +3,8 @@ use std::{fs, path::PathBuf};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, Context};
-use crate::plugin::plugin_commands::load_plugin_metadata;
-use crate::plugin::plugin_commands::detect_plugin;
-
+use crate::plugin::plugin_commands::{detect_plugin, load_plugin_metadata};
+use crate::plugin::PluginMetadata;
 use crate::templates::clone_template;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -32,12 +31,15 @@ pub fn run_forge_init(plugin_arg: Option<String>, template_arg: Option<String>, 
     }
 
     // Detect plugin
-    let plugin = plugin_arg.unwrap_or_else(|| detect_plugin(&cwd).unwrap_or_else(|| {
-        eprintln!("✘ Unable to detect plugin. Use --plugin to specify.");
-        std::process::exit(1);
-    }));
-
-    let plugin_meta = load_plugin_metadata(&plugin).context("Failed to load plugin metadata")?;
+    let plugin: PluginMetadata = match plugin_arg {
+        Some(plugin_name) => load_plugin_metadata(&plugin_name).context("Failed to load plugin metadata")?,
+        None => detect_plugin(&cwd).unwrap_or_else(|| {
+            println!("✘ Unable to detect plugin. Use --plugin to specify.");
+            std::process::exit(1);
+        }),
+    };
+    // This might be redundant since detect plugin already loads metadata
+    let plugin_meta = load_plugin_metadata(&plugin.name).context("Failed to load plugin metadata")?;
 
     // Determine template URL
     let (template_name, template_url) = match template_arg {
@@ -55,7 +57,7 @@ pub fn run_forge_init(plugin_arg: Option<String>, template_arg: Option<String>, 
 
     // Write manifest
     let manifest = ForgeManifest {
-        plugin,
+        plugin: plugin.name,
         templates: vec![TemplateEntry { name: template_name, url: template_url.to_string() }],
         created: Utc::now().to_rfc3339(),
     };

@@ -1,19 +1,20 @@
 // src/plugin.rs
 use std::fs;
 use std::collections::HashMap;
-use std::path::{Path};
 use anyhow::{Result, Context};
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::path::Path;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PluginMetadata {
     pub name: String,
     pub version: String,
     pub description: Option<String>,
-    pub templates: HashMap<String, String>,
+    pub templates: String,
     pub detect: Option<PluginDetectRule>,
     pub actions: Option<HashMap<String, Vec<String>>>,
+    pub custom_renderer_command: Option<String>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -24,9 +25,10 @@ pub struct PluginDetectRule {
 pub mod plugin_commands {
     use super::*;
 
-    pub fn detect_plugin(path: &Path) -> Option<String> {
+    pub fn detect_plugin(path: &Path) -> Option<PluginMetadata> {
+        //let cwd = std::env::current_dir().context("Failed to get current directory").ok()?;
         let current_path = env::current_dir().unwrap();
-        let index_path = dirs::home_dir()?.join(".forge/plugin-index.json");
+        let index_path = dirs::home_dir().unwrap().join(".forge/plugin-index.json");
         if !index_path.exists() {
             println!("Plugin index not found");
             println!("Using local plugin list");
@@ -45,6 +47,7 @@ pub mod plugin_commands {
                 }
             }
 
+            //let plugin_path: &str = entry.get("installed_path").unwrap_or_default();
             if let Some(files) = entry.get("files") {
                 let found_all = files.as_array()?.iter().all(|f| {
                     let file_name = f.as_str().unwrap_or_default();
@@ -52,12 +55,14 @@ pub mod plugin_commands {
                 });
 
                 if found_all {
-                    return Some(name.clone());
+                  if let Ok(plugin_metadata) = serde_json::from_value::<PluginMetadata>(entry.clone()) {
+                    return Some(plugin_metadata);
+                  }
                 }
             }
         }
 
-        None
+        return None
     }
 
 
