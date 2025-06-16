@@ -23,6 +23,9 @@ This is currently an idea with no working implementation yet.  I am currently wo
 * Preview diffs, avoid destructive changes
 * Support offline and air-gapped workflows
 
+## AI's role
+AI is used to generate content for the project, such as READMEs, documentation, and other files. It can be used to generate content where a static template cannot.  The templates themselves may contain static Agent descriptions for the use with LLM calls.
+
 ## Architecture Diagram
 
 ```mermaid
